@@ -1,0 +1,139 @@
+export tmpdir=`mktemp -d --suffix ebook-speaker`
+function doc2txt
+{
+export origdir=$PWD
+getfile $@
+catdoc $rawname
+cd $origdir
+}
+function docx2txt
+{
+export origdir=$PWD
+getfile $@
+libreoffice -env:UserInstallation=file://$tmpdir --headless --cat $rawname
+cd $origdir
+}
+function epub2txt
+{
+export origdir=$PWD
+getfile $@
+unzip -o $rawname > /dev/null 2>/dev/null
+mkdir files
+for g in `find .|grep -i html|sed s/\ /\?/g;find .|grep -i xml|sed s/\ /\?/g`;do
+export i=`echo $g|sed s/\?/\ /g`
+mv $i files
+unset i
+done
+cd files
+for h in `ls -A --sort=version|sed s/\ /\?/g`; do
+export j=`echo $h|sed s/\?/\ /g`
+html2txt $j
+unset j
+done
+cd $origdir
+}
+function getfile
+{
+if [ -d $tmpdir ];then
+true
+else
+mkdir -p $tmpdir
+fi
+export origname=`echo $@|tr / \\\n`
+export transname=`echo -n $origname|tr \\\n /`
+export rawname=`echo $origname|tail -n 1`
+export filetype=`echo $rawname|tr . \\\n|tail -n 1`
+if echo $transname|cut -c 1|grep -q /;then
+export filename=$transname
+else
+export filename=$PWD/$transname
+fi
+cp $filename $tmpdir/
+cd $tmpdir
+}
+function html2txt
+{
+export origdir=$PWD
+getfile $@
+lynx -force_html --dump $tmpdir/$rawname
+cd $origdir
+}
+function jpeg2txt
+{
+export origdir=$PWD
+getfile $@
+tesseract $rawname $rawname 2>/dev/null
+cat $rawname.txt
+cd $origdir
+}
+function jpg2txt
+{
+export origdir=$PWD
+getfile $@
+tesseract $rawname $rawname 2>/dev/null
+cat $rawname.txt
+cd $origdir
+}
+function ocrpdf2txt
+{
+export origdir=$PWD
+getfile $@
+pdfimages $rawname img
+for f in `ls img*|sed s/\?/\ /g`;do
+export imagename=`echo $f|sed s/\?/\ /g`
+tesseract $imagename $imagename > /dev/null 2> /dev/null
+cat $imagename.txt
+done
+cd $origdir
+}
+function pdf2txt
+{
+export origdir=$PWD
+getfile $@
+pdftotext $rawname $rawname.txt
+if cat $rawname.txt|wc -l|grep -qw 0;then
+ocrpdf2txt $@
+else
+cat $rawname.txt
+fi
+cd $origdir
+}
+function png2txt
+{
+export origdir=$PWD
+getfile $@
+tesseract $rawname $rawname 2>/dev/null
+cat $rawname.txt
+cd $origdir
+}
+function pptx2txt
+{
+export origdir=$PWD
+getfile $@
+libreoffice -env:UserInstallation=file://$tmpdir --headless --convert-to pdf $rawname > /dev/null 2>/dev/null
+pdf2txt `echo -n $rawname|sed "s|.pptx|.pdf|g"`
+rm `echo -n $rawname|sed "s|.pptx|.pdf|g"`
+cd $origdir
+}
+function rtf2txt
+{
+export origdir=$PWD
+getfile $@
+catdoc $@
+cd $origdir
+}
+function tiff2txt
+{
+export origdir=$PWD
+getfile $@
+tesseract $rawname $rawname 2>/dev/null
+cat $rawname.txt
+cd $origdir
+}
+function txt2txt
+{
+export origdir=$PWD
+getfile $@
+cat $rawname
+cd $origdir
+}
