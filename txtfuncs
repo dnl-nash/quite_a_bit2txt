@@ -48,7 +48,9 @@ export filename=$transname
 else
 export filename=$PWD/$transname
 fi
+if [ -f $filename ];then
 cp $filename $tmpdir/
+fi
 cd $tmpdir
 }
 function html2txt
@@ -135,5 +137,15 @@ function txt2txt
 export origdir=$PWD
 getfile $@
 cat $rawname
+cd $origdir
+}
+function v4l2txt
+{
+export origdir=$PWD
+export camdev=`echo -en $@|sed "s|\.v4l||g"`
+getfile $camdev
+ffmpeg -f v4l2 -i $camdev -frames 1 -f mjpeg img.jpg 2>/dev/null
+jpg2txt img.jpg
+rm img.jpg
 cd $origdir
 }

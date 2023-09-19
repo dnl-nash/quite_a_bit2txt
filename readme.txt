@@ -14,3 +14,4 @@ Shell Functions to Convert many types of files to text on stdout
 "rtf2txt","catdoc","N/A"
 "tiff2txt","tesseract","N/A"
 "txt2txt","coreutils","N/A"
+"v4l2txt","ffmpeg tesseract","Acquires image from camera/capture card/any other hardware that can get individual frames from v4l devices, OCRs using tesseract"
